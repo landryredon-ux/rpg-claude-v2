@@ -3,20 +3,20 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Chroniques de Claude — RPG IA</title>
+  <title>Chroniques de Claude v3 — RPG IA</title>
   <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="style.css" />
 </head>
 <body>
 <div id="app">
 
-  <!-- ══════════════ HEADER ══════════════ -->
+  <!-- ══════════ HEADER ══════════ -->
   <div class="rpg-header">
     <div class="rpg-title">⚔ Chroniques de Claude ⚔</div>
-    <div class="rpg-subtitle">Jeu de rôle immersif — Système complet généré par l'IA</div>
+    <div class="rpg-subtitle">Jeu de rôle immersif — 3 modes de jeu · Système complet par l'IA</div>
   </div>
 
-  <!-- ══════════════ CLÉ API ══════════════ -->
+  <!-- ══════════ CLÉ API ══════════ -->
   <div id="api-screen">
     <div class="api-title">Clé API Anthropic</div>
     <p class="api-note">
@@ -30,10 +30,9 @@
     <div class="api-status" id="api-status"></div>
   </div>
 
-  <!-- ══════════════ SETUP ══════════════ -->
+  <!-- ══════════ SETUP ══════════ -->
   <div id="setup-screen">
 
-    <!-- Reprise de partie -->
     <div id="resume-bar" class="resume-bar hidden">
       <div class="resume-info">
         Partie sauvegardée : <strong id="resume-name"></strong>
@@ -45,11 +44,9 @@
       </div>
     </div>
 
-    <!-- Nom -->
     <div class="section-label">Nom du personnage</div>
     <input id="char-name-input" type="text" placeholder="Entrez le nom de votre héros..." maxlength="40" />
 
-    <!-- Background -->
     <div class="section-label">Background du personnage</div>
     <textarea id="char-background-input"
       placeholder="Décrivez librement votre personnage : qui est-il, d'où vient-il, qu'a-t-il vécu, quelles capacités possède-t-il ?&#10;&#10;L'IA analysera votre texte et générera automatiquement ses compétences, son talent inné et ses affinités magiques.">
@@ -59,7 +56,6 @@
       Un être mystérieux venu d'ailleurs aura un talent différent d'un soldat ordinaire.
     </div>
 
-    <!-- Univers -->
     <div class="section-label">Construire votre univers</div>
     <div class="select-grid">
       <div class="select-wrap">
@@ -116,7 +112,7 @@
     </div>
     <div style="margin-top:10px;">
       <textarea id="uni-details" style="min-height:70px;"
-        placeholder="Détails supplémentaires (optionnel) : factions importantes, lieux clés, lore spécifique, règles particulières du monde...">
+        placeholder="Détails supplémentaires (optionnel) : factions, lieux clés, lore spécifique...">
       </textarea>
     </div>
 
@@ -125,14 +121,32 @@
     </button>
   </div>
 
-  <!-- ══════════════ GÉNÉRATION ══════════════ -->
+  <!-- ══════════ GÉNÉRATION ══════════ -->
   <div id="generation-screen" class="hidden">
     <div class="gen-title">Forge du Destin...</div>
     <div class="gen-log" id="gen-log">Analyse du background...</div>
   </div>
 
-  <!-- ══════════════ JEU ══════════════ -->
+  <!-- ══════════ JEU ══════════ -->
   <div id="game-screen" class="hidden">
+
+    <!-- BARRE DE MODE -->
+    <div class="mode-bar">
+      <button id="mode-btn-exploration" class="mode-btn active" data-mode="exploration"
+        onclick="switchMode('exploration', '')">
+        🗺 Exploration
+      </button>
+      <button id="mode-btn-combat" class="mode-btn" data-mode="combat"
+        onclick="switchMode('combat', '')">
+        ⚔ Combat
+      </button>
+      <button id="mode-btn-dialogue" class="mode-btn" data-mode="dialogue"
+        onclick="switchMode('dialogue', '')">
+        💬 Dialogue
+      </button>
+      <div id="pnj-indicator" class="pnj-indicator hidden"></div>
+    </div>
+
     <div class="game-layout">
 
       <!-- FICHE PERSONNAGE -->
@@ -163,7 +177,7 @@
         </div>
 
         <hr class="divider" />
-        <div class="stat-label">Compétences</div>
+        <div class="stat-label">Toutes les compétences</div>
         <div id="skills-block"></div>
 
         <hr class="divider" />
@@ -173,13 +187,18 @@
         </div>
         <div class="etat-row" id="etat-row"></div>
 
-        <button class="sheet-btn" onclick="togglePanel()">▼ Stats & Inventaire</button>
+        <!-- Bouton compétences par mode -->
+        <button id="skills-toggle-btn" class="sheet-btn" onclick="toggleSkillsPanel()">
+          ▼ Compétences du mode
+        </button>
+        <div class="skills-mode-panel" id="skills-mode-panel"></div>
 
-        <!-- PANNEAU STATS / INVENTAIRE -->
+        <!-- Bouton inventaire -->
+        <button class="sheet-btn" onclick="togglePanel()">▼ Stats & Inventaire</button>
         <div class="stats-panel" id="stats-panel">
           <div class="panel-section">
             <div class="panel-title">Inventaire</div>
-            <div id="inv-list"><span class="empty-inv">Aucun objet pour l'instant.</span></div>
+            <div id="inv-list"><span class="empty-inv">Aucun objet.</span></div>
             <div class="gold-total" id="gold-total"></div>
           </div>
           <div class="panel-section">
@@ -190,16 +209,12 @@
             <div class="panel-title">Univers</div>
             <div id="uni-summary" style="font-size:11px;color:var(--text-hint);font-style:italic;line-height:1.6;"></div>
           </div>
-          <div class="panel-section">
-            <div class="panel-title">Mémoire de l'aventure</div>
-            <div id="story-summary-panel" class="summary-badge">Aucun résumé encore généré.</div>
-          </div>
         </div>
       </div>
 
       <!-- ZONE NARRATIVE -->
       <div class="narrative-zone">
-        <div id="story-box"></div>
+        <div id="story-box" data-mode="exploration"></div>
         <div class="action-row" id="quick-actions"></div>
         <div class="input-row">
           <input id="player-input" type="text" placeholder="Que faites-vous ?" />
@@ -216,8 +231,11 @@
 
 </div>
 
-<!-- Scripts dans le bon ordre -->
-<script src="system.js"></script>
+<!-- Scripts dans l'ordre strict -->
+<script src="system_shared.js"></script>
+<script src="system_narrateur.js"></script>
+<script src="system_combat.js"></script>
+<script src="system_dialogue.js"></script>
 <script src="saves.js"></script>
 <script src="game.js"></script>
 </body>

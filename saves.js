@@ -1,9 +1,9 @@
 /* =====================================================
-   saves.js — Gestion des sauvegardes et résumé glissant
+   saves.js v3 — Sauvegarde avec 3 historiques + skills
    ===================================================== */
 
-const SAVE_KEY = 'rpg_claude_v2_save';
-const ACTION_SUMMARY_THRESHOLD = 10; // résumer tous les X échanges
+const SAVE_KEY = 'rpg_claude_v3_save';
+const SUMMARY_THRESHOLD = 10;
 
 /* ──────────────────────────────────────────────────────
    SAUVEGARDE
@@ -13,12 +13,17 @@ function saveGame() {
     pc: window.pc,
     charBackground: window.charBackground,
     univers: window.univers,
-    conversationHistory: window.conversationHistory,
+    currentMode: window.currentMode,
+    currentPNJ: window.currentPNJ,
+    activeSkills: window.activeSkills,
+    histNarrateur: window.histNarrateur,
+    histCombat: window.histCombat,
+    histDialogue: window.histDialogue,
     storySummary: window.storySummary,
     actionCount: window.actionCount,
     storyHTML: document.getElementById('story-box').innerHTML,
     savedAt: Date.now(),
-    version: 2
+    version: 3
   };
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify(state));
@@ -33,10 +38,7 @@ function showSaveIndicator() {
   if (!si) return;
   si.className = 'save-indicator saved';
   si.textContent = '✓ Sauvegardé';
-  setTimeout(() => {
-    si.className = 'save-indicator';
-    si.textContent = '○ Sauvegardé';
-  }, 2000);
+  setTimeout(() => { si.className='save-indicator'; si.textContent='○ Sauvegardé'; }, 2000);
 }
 
 /* ──────────────────────────────────────────────────────
@@ -48,10 +50,10 @@ function checkSavedGame() {
   try {
     const state = JSON.parse(raw);
     if (!state.pc?.name) return;
-    const resumeBar = document.getElementById('resume-bar');
+    const resumeBar  = document.getElementById('resume-bar');
     const resumeName = document.getElementById('resume-name');
     const resumeDate = document.getElementById('resume-date');
-    if (resumeBar) resumeBar.classList.remove('hidden');
+    if (resumeBar)  resumeBar.classList.remove('hidden');
     if (resumeName) resumeName.textContent = state.pc.name;
     if (resumeDate && state.savedAt) {
       const d = new Date(state.savedAt);
@@ -65,21 +67,27 @@ function resumeGame() {
   if (!raw) return;
   try {
     const state = JSON.parse(raw);
-    window.pc = state.pc;
+    window.pc             = state.pc;
     window.charBackground = state.charBackground || '';
-    window.univers = state.univers || '';
-    window.conversationHistory = state.conversationHistory || [];
-    window.storySummary = state.storySummary || '';
-    window.actionCount = state.actionCount || 0;
+    window.univers        = state.univers || '';
+    window.currentMode    = state.currentMode || 'exploration';
+    window.currentPNJ     = state.currentPNJ || { nom:'', description:'' };
+    window.activeSkills   = state.activeSkills || { exploration:[], combat:[], dialogue:[] };
+    window.histNarrateur  = state.histNarrateur || [];
+    window.histCombat     = state.histCombat || [];
+    window.histDialogue   = state.histDialogue || [];
+    window.storySummary   = state.storySummary || '';
+    window.actionCount    = state.actionCount || 0;
 
     document.getElementById('setup-screen').classList.add('hidden');
     document.getElementById('game-screen').classList.remove('hidden');
     document.getElementById('story-box').innerHTML = state.storyHTML || '';
     document.getElementById('story-box').scrollTop = document.getElementById('story-box').scrollHeight;
+    document.getElementById('save-indicator').textContent = '○ Sauvegardé';
 
     updateSheet();
     updateInvPanel();
-    document.getElementById('save-indicator').textContent = '○ Sauvegardé';
+    updateModeBar();
     document.getElementById('player-input').focus();
   } catch(e) {
     alert('Impossible de reprendre la partie sauvegardée.');
@@ -100,78 +108,29 @@ function confirmRestart() {
 
 /* ──────────────────────────────────────────────────────
    RÉSUMÉ GLISSANT
-   Principe : tous les ACTION_SUMMARY_THRESHOLD échanges,
-   on demande à Claude de résumer l'histoire jusqu'ici,
-   puis on vide l'historique en ne gardant que
-   - le résumé (injecté dans le prochain message)
-   - les 4 derniers échanges (contexte récent)
 ────────────────────────────────────────────────────── */
 async function maybeSummarize() {
-  window.actionCount = (window.actionCount || 0) + 1;
-  if (window.actionCount % ACTION_SUMMARY_THRESHOLD !== 0) return;
-  if (window.conversationHistory.length < 8) return;
+  const hist = window.histNarrateur;
+  if (hist.length < 8) return;
 
   try {
     addStory('<p class="story-summary">— Le Maître du Jeu grave les événements dans sa mémoire... —</p>');
 
-    const summaryPrompt = `Résume en 5-8 phrases concises et narratives ce qui s'est passé dans cette aventure jusqu'ici. Mentionne : les lieux visités, les ennemis affrontés, les alliés rencontrés, les objets importants trouvés, les décisions clés prises. Écris en français, au passé, de façon immersive.`;
+    const summaryPrompt = `Résume en 5-8 phrases concises et narratives ce qui s'est passé dans cette aventure. Mentionne : lieux visités, ennemis affrontés, alliés rencontrés, objets importants, décisions clés. Français, au passé, immersif.`;
+    const toSummarize = hist.slice(0, -4);
+    const summaryText = await callRaw(summaryPrompt + '\n\nHistorique à résumer:\n' + toSummarize.map(m=>`${m.role}: ${m.content.slice(0,200)}`).join('\n'));
 
-    const historyToSummarize = window.conversationHistory.slice(0, -4);
-    const summaryText = await callClaudeOneShot(summaryPrompt, historyToSummarize);
-
-    // Mettre à jour le résumé cumulatif
     window.storySummary = window.storySummary
       ? window.storySummary + '\n\n' + summaryText
       : summaryText;
 
-    // Garder seulement les 4 derniers échanges
-    window.conversationHistory = window.conversationHistory.slice(-4);
+    // Compresser les 3 historiques
+    window.histNarrateur = hist.slice(-4);
+    window.histCombat    = window.histCombat.slice(-4);
+    window.histDialogue  = window.histDialogue.slice(-4);
 
-    console.log('Résumé généré, historique compressé.');
     saveGame();
   } catch(e) {
     console.warn('Résumé impossible:', e);
   }
-}
-
-/* Appel Claude sans modifier l'historique principal */
-async function callClaudeOneShot(instruction, history) {
-  const messages = [
-    ...history,
-    { role: 'user', content: instruction }
-  ];
-  const r = await fetchWithRetry({
-    model: 'claude-sonnet-4-5',
-    max_tokens: 400,
-    messages
-  });
-  const d = await r.json();
-  return d.content.find(b => b.type === 'text')?.text || '';
-}
-
-/* ──────────────────────────────────────────────────────
-   CONSTRUCTION DU CONTEXTE DYNAMIQUE
-   Injecté AVANT chaque message joueur — petit et ciblé
-────────────────────────────────────────────────────── */
-function buildDynamicContext() {
-  const p = window.pc;
-  const comp = p.competences.map(c => `${c.nom} ${c.val}`).join(' | ');
-  const aff = p.affinites.length ? p.affinites.join(', ') : 'aucune';
-  const inv = p.inventaire.length ? p.inventaire.map(i => `${i.nom}${i.qte > 1 ? ' x' + i.qte : ''}`).join(', ') : 'vide';
-  const money = `${p.or}po ${p.argent}pa ${p.cuivre}pc`;
-  const etat = p.etat !== 'normal' ? `⚠ ÉTAT: ${p.etat}` : 'Normal';
-
-  let ctx = `[ÉTAT ACTUEL DU PERSONNAGE]
-Nom: ${p.name} | Classe: ${p.classe} | Talent: ${p.talent} (×${p.talentMult})
-PV: ${p.pvCur}/${p.pvMax} | PF: ${p.pfCur}/${p.pfMax} | PM: ${p.pmCur}/${p.pmMax} | Chance: ${p.chance}
-État: ${etat} | Univers: ${window.univers}
-Compétences: ${comp}
-Affinités: ${aff} | Inventaire: ${inv} | Bourse: ${money}
-Background: ${window.charBackground}`;
-
-  if (window.storySummary) {
-    ctx += `\n\n[RÉSUMÉ DE L'AVENTURE JUSQU'ICI]\n${window.storySummary}`;
-  }
-
-  return ctx;
 }

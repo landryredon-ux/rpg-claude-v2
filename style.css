@@ -1,0 +1,282 @@
+/* ===================== RESET & VARIABLES ===================== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --gold: #B87333; --gold-light: #D4A853;
+  --bg: #0E0C0A; --surface: #1A1612; --surface2: #221E18;
+  --border: rgba(184,115,51,0.25); --border-soft: rgba(255,255,255,0.07);
+  --text: #E8DCC8; --text-muted: #9A8B76; --text-hint: #5C5043;
+  --danger: #C0392B; --warning: #E67E22; --success: #27AE60;
+}
+
+html, body {
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Crimson Pro', Georgia, serif;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem 1rem 3rem;
+}
+
+#app { width: 100%; max-width: 900px; }
+
+/* ===================== HEADER ===================== */
+.rpg-header {
+  text-align: center;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 0.5px solid var(--border);
+}
+.rpg-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 22px; font-weight: 700;
+  color: var(--gold); letter-spacing: 2px;
+  text-shadow: 0 0 40px rgba(184,115,51,0.3);
+}
+.rpg-subtitle { font-size: 13px; color: var(--text-muted); margin-top: 4px; font-style: italic; }
+
+/* ===================== API SCREEN ===================== */
+#api-screen {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 12px; padding: 1.4rem; margin-bottom: 1.5rem;
+}
+.api-title { font-family: 'Cinzel Decorative', serif; font-size: 12px; color: var(--gold); letter-spacing: 1px; margin-bottom: 8px; }
+.api-note { font-size: 13px; color: var(--text-muted); font-style: italic; margin-bottom: 12px; line-height: 1.6; }
+.api-note a { color: var(--gold-light); text-decoration: underline; }
+.api-row { display: flex; gap: 8px; }
+.api-status { font-size: 12px; margin-top: 6px; font-style: italic; }
+.api-status.ok { color: var(--success); }
+.api-status.err { color: var(--danger); }
+
+/* ===================== FORMS ===================== */
+input[type=text], input[type=password], textarea, select {
+  width: 100%;
+  font-family: 'Crimson Pro', serif;
+  font-size: 15px;
+  background: var(--surface);
+  color: var(--text);
+  border: 0.5px solid var(--border-soft);
+  border-radius: 8px;
+  padding: 11px 14px;
+  transition: border-color 0.15s;
+}
+input[type=text]:focus, input[type=password]:focus, textarea:focus, select:focus {
+  outline: none; border-color: var(--gold);
+}
+input[type=text]::placeholder, input[type=password]::placeholder, textarea::placeholder {
+  color: var(--text-hint); font-style: italic;
+}
+textarea { min-height: 100px; resize: vertical; line-height: 1.6; font-style: italic; }
+select { appearance: none; cursor: pointer; font-style: italic; color: var(--text-muted); }
+select option { background: var(--surface2); color: var(--text); }
+
+/* ===================== BUTTONS ===================== */
+.btn-gold {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 10px; color: var(--gold);
+  background: transparent; border: 0.5px solid var(--gold);
+  border-radius: 8px; padding: 10px 14px;
+  cursor: pointer; white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.btn-gold:hover { background: var(--gold); color: #0E0C0A; }
+.btn-gold:disabled { opacity: 0.4; cursor: default; background: transparent; color: var(--gold); }
+
+.start-btn {
+  width: 100%;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 12px; font-weight: 700;
+  color: var(--gold); background: transparent;
+  border: 1px solid var(--gold); border-radius: 10px;
+  padding: 15px; cursor: pointer; letter-spacing: 1px;
+  margin-top: 1.2rem;
+  transition: background 0.15s, color 0.15s;
+}
+.start-btn:hover { background: var(--gold); color: #0E0C0A; }
+.start-btn:disabled { opacity: 0.4; cursor: default; background: transparent; color: var(--gold); }
+
+/* ===================== SECTION LABELS ===================== */
+.section-label {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 10px; color: var(--gold);
+  letter-spacing: 2px; text-transform: uppercase;
+  margin-bottom: 10px; margin-top: 1.2rem;
+}
+
+/* ===================== HINT BOX ===================== */
+.hint-box {
+  background: var(--surface2); border: 0.5px solid var(--border);
+  border-radius: 8px; padding: 10px 14px; margin-top: 10px;
+  font-size: 12px; color: var(--text-muted); font-style: italic; line-height: 1.6;
+}
+.hint-box strong { color: var(--gold-light); font-style: normal; }
+
+/* ===================== RESUME BAR ===================== */
+.resume-bar {
+  display: flex; align-items: center; justify-content: space-between;
+  background: var(--surface); border: 0.5px solid var(--gold);
+  border-radius: 10px; padding: 12px 16px; margin-top: 1rem;
+}
+.resume-info { font-size: 13px; color: var(--text-muted); font-style: italic; }
+.resume-info strong { color: var(--gold-light); font-style: normal; }
+.resume-btns { display: flex; gap: 8px; }
+.resume-btn {
+  font-family: 'Cinzel Decorative', serif; font-size: 10px;
+  padding: 7px 12px; border-radius: 6px; cursor: pointer;
+  border: 0.5px solid var(--gold); color: var(--gold);
+  background: transparent; transition: background 0.15s, color 0.15s;
+}
+.resume-btn:hover { background: var(--gold); color: #0E0C0A; }
+.resume-btn.danger { border-color: var(--border-soft); color: var(--text-hint); }
+.resume-btn.danger:hover { border-color: var(--danger); color: var(--danger); background: transparent; }
+
+/* ===================== UNIVERSE BUILDER ===================== */
+.select-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.select-wrap { display: flex; flex-direction: column; gap: 6px; }
+.select-sublabel { font-size: 12px; color: var(--text-muted); font-style: italic; }
+
+/* ===================== GENERATION SCREEN ===================== */
+#generation-screen { text-align: center; padding: 3rem 1rem; }
+.gen-title { font-family: 'Cinzel Decorative', serif; font-size: 14px; color: var(--gold); margin-bottom: 1rem; }
+.gen-log { font-size: 14px; color: var(--text-muted); font-style: italic; line-height: 2; }
+
+/* ===================== GAME LAYOUT ===================== */
+.game-layout { display: grid; grid-template-columns: 220px 1fr; gap: 14px; }
+
+/* ===================== CHAR SHEET ===================== */
+.char-sheet {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 10px; padding: 12px;
+  height: fit-content; position: sticky; top: 1rem;
+}
+.sheet-name { font-family: 'Cinzel Decorative', serif; font-size: 11px; color: var(--gold); margin-bottom: 3px; word-break: break-word; }
+.sheet-sub { font-size: 11px; color: var(--text-muted); font-style: italic; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 0.5px solid var(--border-soft); }
+.stat-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+.stat-row { display: flex; align-items: center; gap: 6px; margin-bottom: 4px; }
+.stat-icon { font-size: 11px; width: 14px; text-align: center; }
+.bar-bg { flex: 1; height: 5px; background: var(--surface2); border-radius: 3px; overflow: hidden; }
+.bar-fill { height: 100%; border-radius: 3px; transition: width 0.4s; }
+.bar-pv { background: var(--danger); }
+.bar-pf { background: var(--warning); }
+.bar-pm { background: #5B4FCF; }
+.bar-chance { background: var(--gold); }
+.stat-val { font-size: 10px; color: var(--text-muted); min-width: 36px; text-align: right; }
+.divider { border: none; border-top: 0.5px solid var(--border-soft); margin: 8px 0; }
+.skill-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 3px; }
+.skill-name { font-size: 11px; color: var(--text-muted); font-style: italic; }
+.skill-val { font-size: 11px; color: var(--gold-light); }
+.talent-row { text-align: center; margin-top: 6px; }
+.talent-label { font-size: 10px; color: var(--text-hint); text-transform: uppercase; letter-spacing: 1px; }
+.talent-val { font-family: 'Cinzel Decorative', serif; font-size: 10px; color: var(--gold); margin-top: 2px; }
+.etat-row { text-align: center; margin-top: 4px; font-size: 11px; color: var(--warning); font-style: italic; min-height: 14px; }
+
+.sheet-btn {
+  width: 100%;
+  font-family: 'Cinzel Decorative', serif; font-size: 9px;
+  color: var(--text-muted); background: transparent;
+  border: 0.5px solid var(--border-soft); border-radius: 6px;
+  padding: 7px; cursor: pointer; margin-top: 8px;
+  transition: color 0.15s, border-color 0.15s; letter-spacing: 1px;
+}
+.sheet-btn:hover { color: var(--gold); border-color: var(--gold); }
+
+/* ===================== STATS PANEL ===================== */
+.stats-panel {
+  display: none; background: var(--surface2);
+  border: 0.5px solid var(--border); border-radius: 8px;
+  padding: 12px; margin-top: 8px;
+}
+.stats-panel.open { display: block; }
+.panel-section { margin-bottom: 10px; }
+.panel-title { font-family: 'Cinzel Decorative', serif; font-size: 10px; color: var(--gold); letter-spacing: 1px; margin-bottom: 6px; }
+.inv-item { display: flex; justify-content: space-between; padding: 3px 0; border-bottom: 0.5px solid var(--border-soft); font-size: 11px; color: var(--text-muted); }
+.inv-item:last-child { border-bottom: none; }
+.inv-qty { color: var(--gold-light); }
+.empty-inv { font-size: 11px; color: var(--text-hint); font-style: italic; }
+.gold-total { font-size: 12px; color: var(--gold-light); margin-top: 4px; }
+.summary-badge {
+  font-size: 10px; color: var(--text-hint); font-style: italic;
+  margin-top: 4px; padding: 4px 6px;
+  background: var(--surface); border-radius: 4px;
+  line-height: 1.5;
+}
+
+/* ===================== NARRATIVE ZONE ===================== */
+.narrative-zone { display: flex; flex-direction: column; gap: 10px; }
+
+#story-box {
+  background: var(--surface); border: 0.5px solid var(--border);
+  border-radius: 12px; padding: 1.4rem 1.6rem;
+  min-height: 460px; max-height: 640px;
+  overflow-y: auto; font-size: 16px; line-height: 1.9;
+  scrollbar-width: thin; scrollbar-color: var(--border) transparent;
+}
+.story-narrator { font-style: italic; color: var(--text); margin-bottom: 0.5rem; }
+.story-player { color: var(--gold-light); font-style: normal; font-weight: 500; margin: 0.5rem 0; }
+.story-event { color: var(--warning); font-size: 13px; font-style: italic; margin: 0.3rem 0; }
+.story-critical { color: #FFD700; font-size: 13px; font-style: italic; margin: 0.3rem 0; }
+.story-summary { color: var(--text-hint); font-size: 12px; font-style: italic; border-top: 0.5px solid var(--border-soft); padding-top: 6px; margin: 6px 0; }
+
+.action-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.quick-action {
+  font-family: 'Crimson Pro', serif; font-size: 14px;
+  color: var(--text-muted); background: var(--surface);
+  border: 0.5px solid var(--border-soft); border-radius: 8px;
+  padding: 8px 14px; cursor: pointer;
+  transition: border-color 0.15s, color 0.15s; font-style: italic;
+}
+.quick-action:hover { border-color: var(--gold); color: var(--gold); }
+
+.input-row { display: flex; gap: 8px; }
+#player-input {
+  flex: 1; font-family: 'Crimson Pro', serif; font-size: 15px;
+  background: var(--surface); color: var(--text);
+  border: 0.5px solid var(--border-soft); border-radius: 8px;
+  padding: 12px 16px; font-style: italic;
+}
+#player-input::placeholder { color: var(--text-hint); }
+#player-input:focus { outline: none; border-color: var(--gold); }
+
+#send-btn {
+  font-family: 'Cinzel Decorative', serif; font-size: 10px;
+  color: var(--gold); background: transparent;
+  border: 0.5px solid var(--gold); border-radius: 8px;
+  padding: 12px 18px; cursor: pointer;
+  transition: background 0.15s, color 0.15s; white-space: nowrap;
+}
+#send-btn:hover { background: var(--gold); color: #0E0C0A; }
+#send-btn:disabled { opacity: 0.4; cursor: default; }
+
+.bottom-row { display: flex; justify-content: space-between; align-items: center; }
+.save-indicator { font-size: 11px; color: var(--text-hint); font-style: italic; }
+.save-indicator.saved { color: var(--success); }
+
+.restart-btn {
+  font-family: 'Cinzel Decorative', serif; font-size: 9px;
+  color: var(--text-hint); background: transparent;
+  border: 0.5px solid var(--border-soft); border-radius: 6px;
+  padding: 5px 10px; cursor: pointer; transition: color 0.15s, border-color 0.15s;
+}
+.restart-btn:hover { color: var(--danger); border-color: var(--danger); }
+
+/* ===================== LOADING ===================== */
+.loading-dots span { display: inline-block; animation: dp 1.2s infinite; color: var(--gold); }
+.loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+.loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes dp { 0%,60%,100%{opacity:0.2} 30%{opacity:1} }
+
+/* ===================== UTILS ===================== */
+.hidden { display: none; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-width: 620px) {
+  .game-layout { grid-template-columns: 1fr; }
+  .char-sheet { position: static; }
+  .select-grid { grid-template-columns: 1fr; }
+  #story-box { min-height: 320px; max-height: 480px; }
+}

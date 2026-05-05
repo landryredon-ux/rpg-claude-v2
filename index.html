@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chroniques de Claude — RPG IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Crimson+Pro:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+<div id="app">
+
+  <!-- ══════════════ HEADER ══════════════ -->
+  <div class="rpg-header">
+    <div class="rpg-title">⚔ Chroniques de Claude ⚔</div>
+    <div class="rpg-subtitle">Jeu de rôle immersif — Système complet généré par l'IA</div>
+  </div>
+
+  <!-- ══════════════ CLÉ API ══════════════ -->
+  <div id="api-screen">
+    <div class="api-title">Clé API Anthropic</div>
+    <p class="api-note">
+      Obtenez votre clé sur <a href="https://console.anthropic.com" target="_blank">console.anthropic.com</a>.
+      Sauvegardée uniquement dans votre navigateur.
+    </p>
+    <div class="api-row">
+      <input id="api-input" type="password" placeholder="sk-ant-api03-..." />
+      <button class="btn-gold" onclick="saveApiKey()">Sauvegarder</button>
+    </div>
+    <div class="api-status" id="api-status"></div>
+  </div>
+
+  <!-- ══════════════ SETUP ══════════════ -->
+  <div id="setup-screen">
+
+    <!-- Reprise de partie -->
+    <div id="resume-bar" class="resume-bar hidden">
+      <div class="resume-info">
+        Partie sauvegardée : <strong id="resume-name"></strong>
+        <span id="resume-date" style="font-size:11px;display:block;margin-top:2px;"></span>
+      </div>
+      <div class="resume-btns">
+        <button class="resume-btn" onclick="resumeGame()">↩ Reprendre</button>
+        <button class="resume-btn danger" onclick="clearSave()">✕ Effacer</button>
+      </div>
+    </div>
+
+    <!-- Nom -->
+    <div class="section-label">Nom du personnage</div>
+    <input id="char-name-input" type="text" placeholder="Entrez le nom de votre héros..." maxlength="40" />
+
+    <!-- Background -->
+    <div class="section-label">Background du personnage</div>
+    <textarea id="char-background-input"
+      placeholder="Décrivez librement votre personnage : qui est-il, d'où vient-il, qu'a-t-il vécu, quelles capacités possède-t-il ?&#10;&#10;L'IA analysera votre texte et générera automatiquement ses compétences, son talent inné et ses affinités magiques.">
+    </textarea>
+    <div class="hint-box">
+      <strong>Astuce :</strong> Plus le background est original et détaillé, plus les compétences générées seront uniques.
+      Un être mystérieux venu d'ailleurs aura un talent différent d'un soldat ordinaire.
+    </div>
+
+    <!-- Univers -->
+    <div class="section-label">Construire votre univers</div>
+    <div class="select-grid">
+      <div class="select-wrap">
+        <span class="select-sublabel">Époque & Technologie</span>
+        <select id="uni-epoque">
+          <option value="Médiéval">Médiéval</option>
+          <option value="Âge des cavernes">Âge des cavernes</option>
+          <option value="Renaissance">Renaissance</option>
+          <option value="Industriel / Steampunk">Industriel / Steampunk</option>
+          <option value="Moderne contemporain">Moderne contemporain</option>
+          <option value="Futuriste / Sci-fi">Futuriste / Sci-fi</option>
+          <option value="Post-apocalyptique">Post-apocalyptique</option>
+          <option value="Hors du temps">Hors du temps</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <span class="select-sublabel">État du monde</span>
+        <select id="uni-etat">
+          <option value="En paix relative">En paix relative</option>
+          <option value="En guerre ouverte">En guerre ouverte</option>
+          <option value="Après une grande catastrophe">Après une grande catastrophe</option>
+          <option value="Sous occupation ennemie">Sous occupation ennemie</option>
+          <option value="En déclin et effondrement">En déclin et effondrement</option>
+          <option value="En reconstruction">En reconstruction</option>
+          <option value="Âge d'or et prospérité">Âge d'or et prospérité</option>
+          <option value="Chaos total">Chaos total</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <span class="select-sublabel">Présence de la magie</span>
+        <select id="uni-magie">
+          <option value="Magie rare et secrète">Magie rare et secrète</option>
+          <option value="Aucune magie">Aucune magie</option>
+          <option value="Magie commune et acceptée">Magie commune et acceptée</option>
+          <option value="Magie omniprésente">Magie omniprésente</option>
+          <option value="Magie interdite et pourchassée">Magie interdite et pourchassée</option>
+          <option value="Magie mourante et oubliée">Magie mourante et oubliée</option>
+          <option value="Technologie magique fusionnée">Technologie magique fusionnée</option>
+        </select>
+      </div>
+      <div class="select-wrap">
+        <span class="select-sublabel">Ambiance générale</span>
+        <select id="uni-ambiance">
+          <option value="Héroïque et épique">Héroïque et épique</option>
+          <option value="Sombre et réaliste">Sombre et réaliste</option>
+          <option value="Mystérieux et énigmatique">Mystérieux et énigmatique</option>
+          <option value="Horreur et survival">Horreur et survival</option>
+          <option value="Politique et intrigue">Politique et intrigue</option>
+          <option value="Aventure et exploration">Aventure et exploration</option>
+          <option value="Comédie et légèreté">Comédie et légèreté</option>
+          <option value="Tragique et mélancolique">Tragique et mélancolique</option>
+        </select>
+      </div>
+    </div>
+    <div style="margin-top:10px;">
+      <textarea id="uni-details" style="min-height:70px;"
+        placeholder="Détails supplémentaires (optionnel) : factions importantes, lieux clés, lore spécifique, règles particulières du monde...">
+      </textarea>
+    </div>
+
+    <button class="start-btn" id="start-btn" onclick="startGame()">
+      ⚔ Forger le Personnage & Commencer ⚔
+    </button>
+  </div>
+
+  <!-- ══════════════ GÉNÉRATION ══════════════ -->
+  <div id="generation-screen" class="hidden">
+    <div class="gen-title">Forge du Destin...</div>
+    <div class="gen-log" id="gen-log">Analyse du background...</div>
+  </div>
+
+  <!-- ══════════════ JEU ══════════════ -->
+  <div id="game-screen" class="hidden">
+    <div class="game-layout">
+
+      <!-- FICHE PERSONNAGE -->
+      <div class="char-sheet">
+        <div class="sheet-name" id="sheet-name"></div>
+        <div class="sheet-sub" id="sheet-sub"></div>
+
+        <div class="stat-label">Ressources</div>
+        <div class="stat-row">
+          <span class="stat-icon">❤</span>
+          <div class="bar-bg"><div class="bar-fill bar-pv" id="bar-pv" style="width:100%"></div></div>
+          <span class="stat-val" id="val-pv">-/-</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-icon">⚡</span>
+          <div class="bar-bg"><div class="bar-fill bar-pf" id="bar-pf" style="width:100%"></div></div>
+          <span class="stat-val" id="val-pf">-/-</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-icon">✦</span>
+          <div class="bar-bg"><div class="bar-fill bar-pm" id="bar-pm" style="width:100%"></div></div>
+          <span class="stat-val" id="val-pm">-/-</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-icon">★</span>
+          <div class="bar-bg"><div class="bar-fill bar-chance" id="bar-chance" style="width:10%"></div></div>
+          <span class="stat-val" id="val-chance">-</span>
+        </div>
+
+        <hr class="divider" />
+        <div class="stat-label">Compétences</div>
+        <div id="skills-block"></div>
+
+        <hr class="divider" />
+        <div class="talent-row">
+          <div class="talent-label">Talent inné</div>
+          <div class="talent-val" id="talent-val">—</div>
+        </div>
+        <div class="etat-row" id="etat-row"></div>
+
+        <button class="sheet-btn" onclick="togglePanel()">▼ Stats & Inventaire</button>
+
+        <!-- PANNEAU STATS / INVENTAIRE -->
+        <div class="stats-panel" id="stats-panel">
+          <div class="panel-section">
+            <div class="panel-title">Inventaire</div>
+            <div id="inv-list"><span class="empty-inv">Aucun objet pour l'instant.</span></div>
+            <div class="gold-total" id="gold-total"></div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-title">Affinités magiques</div>
+            <div id="aff-list" style="font-size:12px;color:var(--text-muted);font-style:italic;"></div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-title">Univers</div>
+            <div id="uni-summary" style="font-size:11px;color:var(--text-hint);font-style:italic;line-height:1.6;"></div>
+          </div>
+          <div class="panel-section">
+            <div class="panel-title">Mémoire de l'aventure</div>
+            <div id="story-summary-panel" class="summary-badge">Aucun résumé encore généré.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ZONE NARRATIVE -->
+      <div class="narrative-zone">
+        <div id="story-box"></div>
+        <div class="action-row" id="quick-actions"></div>
+        <div class="input-row">
+          <input id="player-input" type="text" placeholder="Que faites-vous ?" />
+          <button id="send-btn" onclick="sendAction()">Agir →</button>
+        </div>
+        <div class="bottom-row">
+          <span class="save-indicator" id="save-indicator">○ Non sauvegardé</span>
+          <button class="restart-btn" onclick="confirmRestart()">✕ Nouvelle partie</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- Scripts dans le bon ordre -->
+<script src="system.js"></script>
+<script src="saves.js"></script>
+<script src="game.js"></script>
+</body>
+</html>
